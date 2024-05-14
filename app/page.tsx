@@ -45,20 +45,23 @@ const Home: React.FC = () => {
       <h1 className="text-center text-2xl font-bold my-4">
         Wildlife Camera Images
       </h1>
-      <div className="flex flex-wrap justify-center">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {Array.isArray(images) &&
           images.map((imagePath) => (
-            <div
-              key={imagePath}
-              className="m-4 cursor-pointer"
-              onClick={() => handleImageClick(imagePath)}
-            >
+            <div key={imagePath} className="text-center">
               <Image
                 src={`${process.env.NEXT_PUBLIC_PHOTO_DIR_URL}/${imagePath}`}
                 alt={imagePath}
                 width={150}
                 height={150}
+                className="mx-auto"
               />
+              <button
+                className="mt-2 bg-blue-500 text-white py-1 px-2 rounded"
+                onClick={() => handleImageClick(imagePath)}
+              >
+                View Metadata
+              </button>
             </div>
           ))}
       </div>
