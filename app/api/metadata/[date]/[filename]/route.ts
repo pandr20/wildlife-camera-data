@@ -1,18 +1,28 @@
-import { NextApiRequest, NextApiResponse } from "next";
-import path from "path";
-import fs from "fs";
+import { NextRequest, NextResponse } from "next/server";
+import fetch from "node-fetch";
 
-const PHOTO_DIR = path.join("/home/pi/photos"); // Update this path accordingly
+const PHOTO_DIR_URL = process.env.PHOTO_DIR_URL;
 
-export default function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { date, filename } = req.query;
-  const jsonFilename = (filename as string).replace(".jpg", ".json");
-  const filepath = path.join(PHOTO_DIR, date as string, jsonFilename);
-  fs.readFile(filepath, "utf8", (err, data) => {
-    if (err) {
-      console.error("Error reading metadata file:", err);
-      return res.status(404).send("File not found");
+export async function GET(
+  req: NextRequest,
+  { params }: { params: { date: string; filename: string } }
+) {
+  const { date, filename } = params;
+  const jsonFilename = filename.replace(".jpg", ".json");
+  try {
+    const response = await fetch(
+      `${PHOTO_DIR_URL}/metadata/${date}/${jsonFilename}`
+    );
+    if (!response.ok) {
+      throw new Error("Failed to fetch metadata");
     }
-    res.status(200).json(JSON.parse(data));
-  });
+    const metadata = await response.json();
+    return NextResponse.json(metadata);
+  } catch (err) {
+    console.error("Error fetching metadata:", err);
+    return NextResponse.json(
+      { error: "Unable to fetch metadata" },
+      { status: 404 }
+    );
+  }
 }

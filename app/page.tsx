@@ -10,49 +10,73 @@ const Home: React.FC = () => {
 
   useEffect(() => {
     const fetchImages = async () => {
-      const res = await fetch("/api/images");
-      const imagesList: string[] = await res.json();
-      setImages(imagesList);
+      try {
+        const res = await fetch("/api/images");
+        if (!res.ok) {
+          throw new Error("Failed to fetch images");
+        }
+        const imagesList: string[] = await res.json();
+        setImages(imagesList);
+      } catch (error) {
+        console.error("Error fetching images:", error);
+      }
     };
     fetchImages();
   }, []);
 
   const handleImageClick = async (imagePath: string) => {
     const [date, filename] = imagePath.split("/");
-    const res = await fetch(`/api/metadata/${date}/${filename}`);
-    const metadata: ImageMetadata = await res.json();
-    setSelectedImage(`/photos/${imagePath}`);
-    setMetadata(metadata);
+    try {
+      const res = await fetch(`/api/metadata/${date}/${filename}`);
+      if (!res.ok) {
+        throw new Error("Failed to fetch metadata");
+      }
+      const metadata: ImageMetadata = await res.json();
+      console.log("Fetched metadata:", metadata); // Debugging log
+      setSelectedImage(`${process.env.NEXT_PUBLIC_PHOTO_DIR_URL}/${imagePath}`);
+      setMetadata(metadata);
+    } catch (error) {
+      console.error("Error fetching metadata:", error);
+    }
   };
 
   return (
-    <div>
+    <div className="flex flex-col items-center">
       <h1 className="text-center text-2xl font-bold my-4">
         Wildlife Camera Images
       </h1>
       <div className="flex flex-wrap justify-center">
-        {images.map((imagePath) => (
-          <div
-            key={imagePath}
-            className="m-4 cursor-pointer"
-            onClick={() => handleImageClick(imagePath)}
-          >
-            <Image
-              src={`/photos/${imagePath}`}
-              alt={imagePath}
-              width={150}
-              height={150}
-              className="border-2 border-gray-300 transition-transform duration-200 hover:scale-105 hover:border-gray-500"
-            />
-          </div>
-        ))}
+        {Array.isArray(images) &&
+          images.map((imagePath) => (
+            <div
+              key={imagePath}
+              className="m-4 cursor-pointer"
+              onClick={() => handleImageClick(imagePath)}
+            >
+              <Image
+                src={`${process.env.NEXT_PUBLIC_PHOTO_DIR_URL}/${imagePath}`}
+                alt={imagePath}
+                width={150}
+                height={150}
+              />
+            </div>
+          ))}
       </div>
       {selectedImage && (
         <div className="mt-8 text-center">
           <h2 className="text-xl font-semibold mb-4">Selected Image</h2>
-          <Image src={selectedImage} alt="Selected" width={600} height={400} />
-          <pre className="bg-white p-4 border border-gray-300 mt-4 max-w-md mx-auto">
-            {JSON.stringify(metadata, null, 2)}
+          <div className="flex justify-center">
+            <Image
+              src={selectedImage}
+              alt="Selected"
+              width={600}
+              height={400}
+            />
+          </div>
+          <pre className="bg-white p-4 border border-gray-300 mt-4 max-w-md mx-auto whitespace-pre-wrap break-words">
+            {metadata
+              ? JSON.stringify(metadata, null, 2)
+              : "Loading metadata..."}
           </pre>
         </div>
       )}
