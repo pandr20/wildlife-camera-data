@@ -57,7 +57,7 @@ const Home: React.FC = () => {
                 className="mx-auto"
               />
               <button
-                className="mt-2 bg-blue-500 text-white py-1 px-2 rounded"
+                className="mt-2 bg-blue-700 text-white py-1 px-2 rounded-xl"
                 onClick={() => handleImageClick(imagePath)}
               >
                 View Metadata
